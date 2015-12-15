@@ -1,7 +1,5 @@
 import imp
 import inspect
-#import sys
-#from warp import *
 
 def load_module(module_name):
   """
@@ -17,7 +15,7 @@ def load_module(module_name):
   return imp.load_module(module_name, f, filename, description)
 
 
-def get_class_obj(module_obj,class_name):
+def get_class_obj(module_name,class_name):
   """
   Retrieves the class object with the class name class_name
   from the module with module_name.
@@ -27,8 +25,7 @@ def get_class_obj(module_obj,class_name):
   Return value:
     class_obj: The class object itself.
   """
-  if not inspect.ismodule(module_obj):
-    raise Exception("A module object needs to be passed to the get_class_obj function")
+  module_obj = load_module(module_name)
   if hasattr(module_obj,class_name):
     return getattr(module_obj,class_name)
   #If class_name not present, throw exception.

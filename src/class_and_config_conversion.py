@@ -28,8 +28,7 @@ def export_class_as_config(module_name,class_name,instance_name=None,config=None
     instance_name = class_name
   
   #Load module and get the needed class objects.
-  module_obj = load_module(module_name)
-  class_obj = get_class_obj(module_obj,class_name)
+  class_obj = get_class_obj(module_name,class_name)
 
   #Obtain all of the arguments for initiatilization of the class.
   all_args = get_all_init_args(class_obj)
