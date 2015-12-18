@@ -21,10 +21,12 @@ def my_parse_args(arg_string):
     instance_name = pieces[2]
   return (module_name, class_name, instance_name)
 
+options = {}
+
 config = SafeConfigParser()
 for arg_string in args.class_name:
   module_name, class_name, instance_name = my_parse_args(arg_string) 
-  config = export_class_as_config(module_name,class_name,instance_name,config)
+  config = export_class_as_config(module_name,class_name,instance_name,config,**options)
 
 if args.output_file is None:
   f = sys.stdout
