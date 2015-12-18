@@ -2,7 +2,8 @@ import argparse
 import sys
 from ConfigParser import SafeConfigParser
 from class_and_config_conversion import export_class_as_config
-parser = argparse.ArgumentParser(description='Finds the given class(es) and writes a config file corresponding to the init parameters for the importer.')
+from warpoptions import *
+parser.description='Finds the given class(es) and writes a config file corresponding to the init parameters for the importer.'
 parser.add_argument('class_name', nargs='+', type=str, help='The module_name, class name, and optional instance name separatd by ":".  Can be more than one if they are separated by spaces. Eg. ZCylinder:First ZCylinder.')
 parser.add_argument('-o', dest="output_file", type=str, help='The output file path to which the output should be written.  Default is stdout.', default=None)
 args = parser.parse_args()
