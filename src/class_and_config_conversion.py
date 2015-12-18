@@ -71,9 +71,10 @@ def set_attributes_with_config_section(obj, config, section,key_processing_dict=
       return
     raise NoSectionError("Section named " + section + " is not present in the config.")
   for key, value in config.items(section):
+    value = config.get(section,key) #Enforce that the value goes through the get routine.
     if key_processing_dict is not None:
       prev_key = key
-      for string, callback in key_processing_dict.iter_items():
+      for string, callback in key_processing_dict.iteritems():
         parsed_key = callback(obj,string,prev_key, value)
         prev_key = parsed_key
       if parsed_key != key:
