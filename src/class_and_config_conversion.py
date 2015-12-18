@@ -1,4 +1,5 @@
-from ConfigParser import SafeConfigParser, NoSectionError
+from ConfigParser import ConfigParser, SafeConfigParser, NoSectionError
+import inspect
 import re
 from class_retrieval import load_module, get_class_obj
 from method_parsing import get_all_init_args, get_class_documentation
@@ -70,7 +71,7 @@ def set_attributes_with_config_section(obj, config, section,key_processing_dict=
     if not safe:
       return
     raise NoSectionError("Section named " + section + " is not present in the config.")
-  for key, value in config.items(section):
+  for key in config.options(section):
     value = config.get(section,key) #Enforce that the value goes through the get routine.
     if key_processing_dict is not None:
       prev_key = key
@@ -82,3 +83,53 @@ def set_attributes_with_config_section(obj, config, section,key_processing_dict=
     setattr(obj, key, value)
   return
         
+def import_classes_from_config_file(config_file,config_parser_class=ConfigParser,**kwargs):
+  """
+  Does the reverse of the export command above.  Reads in a config file with
+  the 2 config2class attributes in each section and loads up the class
+  using the parametes in the config section to initialize the instances.
+  Args:
+    config_file: The config file holding the parameters to be used in instance
+      initialization.
+    config_parser_class: Allows the passing of alternative config parsers.
+  Return value:
+    class_dict: A dictionary of classes with the section (or instance_name) of the
+      config used as a key.
+  """
+  class_dict = {}
+  config = config_parser_class()
+  config.read(config_file)
+
+  for section in config.sections():
+    instance = import_class_from_config_section(config,section)
+    class_dict[section] = instance
+  
+  return class_dict
+
+def import_class_from_config_section(config,section):
+  """
+  Imports the section as a class, calling the relevant class initialization
+  method using the options as parameters. 
+  """
+  if not config.has_option(section,"config2class_import_module_name") or not config.has_option(section,"config2class_import_class_name"):
+    raise Exception("The config file, " + config_file + ", does not have the appropriate"
+      "required config2class options in the section name "+ section)
+  module_name = config.get(section,"config2class_import_module_name")
+  class_name = config.get(section,"config2class_import_class_name")
+  config2class_options = ["config2class_import_module_name",
+                          "config2class_import_class_name"]
+  
+  class_obj = get_class_obj(module_name,class_name)
+  arg_spec = inspect.getargspec(class_obj.__init__)
+  args_list = list(arg_spec[0][1:-len(arg_spec[3])]) #This is a list of the required args in order.
+
+  input_args =[]
+  for arg in arg_list:
+    input_args.append(config.get(section,arg))
+  kwargs = {}
+  for option in config.options(section):
+    if option in args_list + config2class_options:
+      continue
+    kwargs[option] = config.get(section,option)
+  
+  return class_obj.__init__(*input_args,**kwargs)
