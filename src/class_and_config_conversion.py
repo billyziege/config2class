@@ -1,4 +1,4 @@
-from ConfigParser import SafeConfigParser
+from ConfigParser import SafeConfigParser, NoSectionError
 import re
 from class_retrieval import load_module, get_class_obj
 from method_parsing import get_all_init_args, get_class_documentation
@@ -48,3 +48,36 @@ def export_class_as_config(module_name,class_name,instance_name=None,config=None
     config.set(instance_name,arg,value)
   return config 
 
+def set_attributes_with_config_section(obj, config, section,key_processing_dict=None, safe=False):
+  """
+  Uses the keys and values in the config's section to set
+  attributes of the obj.
+  Args:
+    obj: The object for which attributes will be set.
+    config: A config parser object.
+    section: A section in the config parser object
+      from which the keys will be used to set attributes.
+    key_processing_callback_dict: A dict with string keys and function
+      values.  If None, key processing will be skipped.  Otherwise,
+      the key will be re.matched to the the string, and if it matches,
+      the obj, string, key, and value will be passed to the function.
+    safe: If set to true and the section is not in the cofig,
+      exits without raising an exception.
+  Return value:
+    None --- but sets the attributes of the obj in place.  
+  """
+  if not config.has_section(section):
+    if not safe:
+      return
+    raise NoSectionError("Section named " + section + " is not present in the config.")
+  for key, value in config.items(section):
+    if key_processing_dict is not None:
+      prev_key = key
+      for string, callback in key_processing_dict.iter_items():
+        parsed_key = callback(obj,string,prev_key, value)
+        prev_key = parsed_key
+      if parsed_key != key:
+        continue
+    setattr(obj, key, value)
+  return
+        
