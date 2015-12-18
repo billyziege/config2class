@@ -1,7 +1,7 @@
 import inspect
 import re
 
-def get_all_init_args(class_obj):
+def get_all_init_args(class_obj,skip_classes=[],**kwargs):
   """
   Compares the list of init arguments for the class_obj and
   all base classes to those provided in the code to determine
@@ -17,8 +17,15 @@ def get_all_init_args(class_obj):
 
   inherited_classes = inspect.getmro(class_obj)  
 
-  parsed_calls = parse_super_init_call(class_obj)
-  arg_spec = inspect.getargspec(class_obj.__init__)
+  parsed_calls = parse_super_init_call(class_obj,**kwargs)
+
+  output["args"] = list()
+  output["default_args"] = list()
+  output["default_values"] = list()
+  try:
+    arg_spec = inspect.getargspec(class_obj.__init__)
+  except TypeError:
+    return output
 
   output["args"] = list(arg_spec[0][1:-len(arg_spec[3])])
   output["default_args"] = list(arg_spec[0][len(arg_spec[0])-len(arg_spec[3]):])
@@ -66,7 +73,7 @@ def defined_init_minus_called_init(called_dict,defined_dict):
     output["default_values"].append(value)
   return output 
 
-def parse_super_init_call(class_obj):
+def parse_super_init_call(class_obj,**kwargs):
   """
   Returns a dictionary of class_name: arguments for base object's
   init within the class's init method. If init is not called, returns an
@@ -100,7 +107,12 @@ def extract_super_init_calls(class_obj):
     output_calls: A list of strings detailing calls to init.
   """
   init_calls = []
-  init_code_lines = list(inspect.getsourcelines(class_obj.__init__))[0]
+  if not hasattr(class_obj,'__init__'):
+    return init_calls
+  try:
+    init_code_lines = list(inspect.getsourcelines(class_obj.__init__))[0]
+  except TypeError:
+    return init_calls
   if len(init_code_lines) == 0:
     return init_calls
   init_code_lines.pop(0) #Remove and ignore the first, definition, line.
@@ -120,6 +132,8 @@ def extract_super_init_calls(class_obj):
       open_count = line.count("(")
       closed_count = line.count(")")
     init_calls.append(line)
+    if len(init_code_lines) == 0:
+      break
     line = init_code_lines.pop(0)
   return init_calls
 
@@ -134,7 +148,10 @@ def get_class_documentation(class_obj):
     documentation: A list of strings detailing the documentation to init.
   """
   documentation = []
-  code_lines = list(inspect.getsourcelines(class_obj))[0]
+  try:
+    code_lines = list(inspect.getsourcelines(class_obj))[0]
+  except TypeError:
+    return documentation
   if len(code_lines) == 0:
     return documentation
   code_lines.pop(0) #Remove and ignore the first, definition, line.
