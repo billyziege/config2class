@@ -3,7 +3,7 @@ import re
 from class_retrieval import load_module, get_class_obj
 from method_parsing import get_all_init_args, get_class_documentation
 
-def export_class_as_config(module_name,class_name,instance_name=None,config=None):
+def export_class_as_config(module_name,class_name,instance_name=None,config=None,**kwargs):
   """
   Takes a class from the specified module and returns a config object with the
   section specifying the instance name and the options specifying the arguments
@@ -31,13 +31,14 @@ def export_class_as_config(module_name,class_name,instance_name=None,config=None
   class_obj = get_class_obj(module_name,class_name)
 
   #Obtain all of the arguments for initiatilization of the class.
-  all_args = get_all_init_args(class_obj)
+  all_args = get_all_init_args(class_obj,**kwargs)
   documentation = get_class_documentation(class_obj)
 
   #Create the section.
   config.add_section(instance_name)
   for line in documentation:
     config.set(instance_name,";" + line,"")
+  config.set(instance_name,"config2class_import_module_name",module_name)
   config.set(instance_name,"config2class_import_class_name",class_name)
   for arg in all_args["args"]:
     config.set(instance_name,arg,"")
