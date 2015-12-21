@@ -49,7 +49,8 @@ def export_class_as_config(module_name,class_name,instance_name=None,config=None
     config.set(instance_name,arg,value)
   return config 
 
-def set_attributes_with_config_section(obj, config, section,key_processing_dict=None, safe=False):
+def set_attributes_with_config_section(obj, config, section,key_processing_dict=None, safe=False,
+                                       **kwargs):
   """
   Uses the keys and values in the config's section to set
   attributes of the obj.
@@ -83,7 +84,8 @@ def set_attributes_with_config_section(obj, config, section,key_processing_dict=
     setattr(obj, key, value)
   return
         
-def import_classes_from_config_file(config_file,config_parser_class=ConfigParser,**kwargs):
+def import_classes_from_config_file(config_file,config_parser_class=ConfigParser, 
+                                    key_overwrite=None, **kwargs):
   """
   Does the reverse of the export command above.  Reads in a config file with
   the 2 config2class attributes in each section and loads up the class
@@ -100,9 +102,17 @@ def import_classes_from_config_file(config_file,config_parser_class=ConfigParser
   config = config_parser_class()
   config.read(config_file)
 
+  if len(config.sections()) > 1 and key_overwrite is not None:
+    raise KeyError("Naming the instance externally from import_classes_from_config_file " +
+                   "is only supported when the element config file has a single " +
+                   "section.")
+
   for section in config.sections():
-    instance = import_class_from_config_section(config,section)
-    class_dict[section] = instance
+    instance = import_class_from_config_section(config,section,**kwargs)
+    if key_overwrite is not None:
+      class_dict[key_overwrite] = instance
+    else:
+      class_dict[section] = instance
   
   return class_dict
 
