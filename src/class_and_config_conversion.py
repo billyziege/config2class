@@ -124,7 +124,7 @@ def import_class_from_config_section(config,section):
   args_list = list(arg_spec[0][1:-len(arg_spec[3])]) #This is a list of the required args in order.
 
   input_args =[]
-  for arg in arg_list:
+  for arg in args_list:
     input_args.append(config.get(section,arg))
   kwargs = {}
   for option in config.options(section):
@@ -132,4 +132,4 @@ def import_class_from_config_section(config,section):
       continue
     kwargs[option] = config.get(section,option)
   
-  return class_obj.__init__(*input_args,**kwargs)
+  return class_obj(*input_args,**kwargs)
